@@ -10,6 +10,13 @@ let toDoID = 0;
 
 
 app.get('/todos', (req, res) => {
+
+    if (!toDoList[id]) {
+        return res.status(404).json({
+            message: "Todo not found."
+        });
+    }
+    
     res.json(toDoList);
 });
 
@@ -24,9 +31,9 @@ app.post('/todos', (req, res) => {
     });
 });
 
-app.put('/todos', (req, res) => {
-    toDoList[req.query.id].message = req.body.message;
-    toDoList[req.query.id].isDone = req.body.isDone;
+app.put('/todos/:id', (req, res) => {
+    toDoList[req.params.id].message = req.body.message;
+    toDoList[req.params.id].isDone = req.body.isDone;
 
     res.status(201).json({ 
         message: "Todo updated successfully!", 
@@ -34,8 +41,8 @@ app.put('/todos', (req, res) => {
     });
 });
 
-app.delete('/todos', (req, res) => {
-    delete toDoList[req.query.id];
+app.delete('/todos/:id', (req, res) => {
+    delete toDoList[req.params.id];
 
     res.status(201).json({ 
         message: "Todo deleted successfully!", 
