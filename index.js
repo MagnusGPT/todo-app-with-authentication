@@ -1,13 +1,19 @@
 const express = require('express');
+const Database = require('better-sqlite3');
 const app = express();
 const http = require('http');
 const server = http.createServer(app);
+
+const db = new Database('todos.db');
 
 app.use(express.json());
 
 const toDoList = {};
 let toDoID = 0;
 
+app.get('/', (req, res) => {
+    res.send('Hello world!');
+});
 
 app.get('/todos', (req, res) => {
 
