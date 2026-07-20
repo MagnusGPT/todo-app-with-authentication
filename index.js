@@ -40,8 +40,8 @@ app.get('/todos/:id', (req, res) => {
     const stmt = db
     .prepare(`
         SELECT * FROM todos
-        WHERE id = ?`)
-    .all();
+        WHERE id = ?
+    `);
 
     const todo = stmt.get(id);
 
