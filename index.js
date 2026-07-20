@@ -1,10 +1,8 @@
 const express = require('express');
-const Database = require('better-sqlite3');
+const db = require('./db');
 const app = express();
 const http = require('http');
 const server = http.createServer(app);
-
-const db = new Database('todos.db');
 
 app.use(express.json());
 
@@ -16,14 +14,46 @@ app.get('/', (req, res) => {
 });
 
 app.get('/todos', (req, res) => {
+    const todos = db
+    .prepare('SELECT * FROM todos;')
+    .all();
 
-    if (!toDoList[id]) {
+    const formattedTodos = todos.map(todo => ({
+        ...todo,
+        isDone: Boolean(todo.isDone)
+    }));
+
+    return res.status(201).json({
+        "data": formattedTodos
+    });
+});
+
+app.get('/todos/:id', (req, res) => {
+    const id = Number(req.params.id);
+
+    if (isNaN(id)) {
+        return res.status(400).json({
+            message: "Invalid ID."
+        });
+    }
+    
+    const stmt = db
+    .prepare(`
+        SELECT * FROM todos
+        WHERE id = ?`)
+    .all();
+
+    const todo = stmt.get(id);
+
+    if (!todo) {
         return res.status(404).json({
             "message": "Todo not found."
         });
     }
     
-    res.json(toDoList);
+    todo.isDone = Boolean(todo.isDone);
+
+    res.json(todo);
 });
 
 app.post('/todos', (req, res) => {
@@ -51,13 +81,19 @@ app.post('/todos', (req, res) => {
         });
     }
 
-    toDoList[toDoID] = req.body;
-    toDoList[toDoID].isDone = false;
-    toDoID++;
+    const stmt = db.prepare(`
+        INSERT INTO todos
+        (message, isDone)
+        VALUES (?, ?)
+    `);
+
+    stmt.run(
+       req.body.message,
+       0
+    );
 
     res.status(201).json({ 
-        message: "Todo created successfully!", 
-        data: toDoList 
+        message: "Todo created successfully!"
     });
 });
 
