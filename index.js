@@ -142,11 +142,30 @@ app.put('/todos/:id', (req, res) => {
 });
 
 app.delete('/todos/:id', (req, res) => {
-    delete toDoList[req.params.id];
+    const id = Number(req.params.id);
 
-    res.status(201).json({ 
-        message: "Todo deleted successfully!", 
-        data: toDoList 
+    if (isNaN(id)) {
+        return res.status(400).json({
+            message: "Invalid ID."
+        });
+    }
+
+    const stmt = db.prepare(`
+        DELETE FROM todos 
+        WHERE id = ?
+    `);
+
+    const result = stmt.run(id);
+
+    //Did a row actually get deleted?
+    if (result.changes === 0) {
+        return res.status(404).json({
+            message: "Todo not found."
+        });
+    }
+
+    res.status(200).json({ 
+        message: "Todo deleted successfully!"
     });
 });
 
