@@ -9,7 +9,6 @@ This project started as a basic CRUD application and is being expanded with auth
 * Todo CRUD operations
 * SQLite database integration
 * Input validation
-* Prepared SQL statements
 * User registration
 * Password hashing with bcrypt
 * Modular route structure
@@ -27,7 +26,7 @@ This project started as a basic CRUD application and is being expanded with auth
 Clone the repository:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/MagnusGPT/todo-app-with-authentication
 cd todo-list
 ```
 
@@ -40,7 +39,7 @@ npm install
 Start the server:
 
 ```bash
-node index.js
+npm start
 ```
 
 The API will run on:
@@ -78,13 +77,6 @@ The application uses SQLite with tables for:
 * Todos
 
 Todos are designed to belong to users through a relationship between the two tables.
-
-## Future Plans
-
-* Session-based authentication
-* Protected routes
-* User-specific todos
-* Role-based permissions
 
 ---
 
