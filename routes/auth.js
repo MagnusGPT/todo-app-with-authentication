@@ -25,7 +25,7 @@ router.post("/register", async (req, res) => {
     try {
         db.prepare(`
             INSERT INTO users 
-            (username, password) 
+            (username, passwordHash) 
             VALUES 
             (?, ?)`)
         .run(
@@ -44,7 +44,7 @@ router.post("/register", async (req, res) => {
             });
         }
         return res.status(500).json({ 
-            message: "Internal server error." 
+            message: "Internal server error."
         });
     }
 });
