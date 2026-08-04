@@ -20,6 +20,7 @@ This project started as a basic CRUD application and is being expanded with auth
 * SQLite
 * better-sqlite3
 * bcrypt
+* express-session
 
 ## Installation
 
@@ -65,9 +66,8 @@ DELETE /todos/:id
 ```
 POST /register
 POST /login
+POST /logout
 ```
-
-(Authentication is currently being implemented.)
 
 ## Database
 

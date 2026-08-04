@@ -1,12 +1,15 @@
 const express = require("express");
 const db = require("../db");
+const auth = require("../middleware/auth");
 
 const router = express.Router();
 
-router.get("/", (req, res) => {
+router.get("/", auth, (req, res) => {
     const todos = db
-    .prepare('SELECT * FROM todos;')
-    .all();
+    .prepare(`
+        SELECT * FROM todos
+        WHERE userId = ?`)
+    .all(req.session.userId);
 
     const formattedTodos = todos.map(todo => ({
         ...todo,
@@ -18,7 +21,7 @@ router.get("/", (req, res) => {
     });
 });
 
-router.get("/:id", (req, res) => {
+router.get("/:id", auth, (req, res) => {
     const id = Number(req.params.id);
 
     if (isNaN(id)) {
@@ -31,9 +34,13 @@ router.get("/:id", (req, res) => {
     .prepare(`
         SELECT * FROM todos
         WHERE id = ?
+        AND userId = ?
     `);
 
-    const todo = stmt.get(id);
+    const todo = stmt.get(
+        id,
+        req.session.userId
+    );
 
     if (!todo) {
         return res.status(404).json({
@@ -46,7 +53,7 @@ router.get("/:id", (req, res) => {
     res.json(todo);
 });
 
-router.post("/", (req, res) => {
+router.post("/", auth, (req, res) => {
     const allowedFields = ["message"];
 
     const keys = Object.keys(req.body);
@@ -73,13 +80,14 @@ router.post("/", (req, res) => {
 
     const stmt = db.prepare(`
         INSERT INTO todos
-        (message, isDone)
-        VALUES (?, ?)
+        (message, isDone, userId)
+        VALUES (?, ?, ?)
     `);
 
     stmt.run(
        req.body.message,
-       0
+       0,
+       req.session.userId
     );
 
     res.status(201).json({ 
@@ -87,7 +95,7 @@ router.post("/", (req, res) => {
     });
 });
 
-router.put("/:id", (req, res) => {
+router.put("/:id", auth, (req, res) => {
 
     const id = Number(req.params.id);
 
@@ -135,12 +143,14 @@ router.put("/:id", (req, res) => {
             message = ?,
             isDone = ?
         WHERE id = ?
+        AND userId = ?
     `);
 
     const result = stmt.run(
         req.body.message,
         req.body.isDone ? 1 : 0,
-        id
+        id,
+        req.session.userId
     );
 
     if (result.changes === 0) {
@@ -155,7 +165,7 @@ router.put("/:id", (req, res) => {
 
 });
 
-router.delete("/:id", (req, res) => {
+router.delete("/:id", auth, (req, res) => {
   const id = Number(req.params.id);
 
     if (isNaN(id)) {
@@ -167,9 +177,13 @@ router.delete("/:id", (req, res) => {
     const stmt = db.prepare(`
         DELETE FROM todos 
         WHERE id = ?
+        AND userId = ?
     `);
 
-    const result = stmt.run(id);
+    const result = stmt.run(
+        id,
+        req.session.userId
+    );
 
     //Did a row actually get deleted?
     if (result.changes === 0) {

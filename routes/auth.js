@@ -6,8 +6,37 @@ const { validateCredentials } = require("../utils/validation");
 
 const router = express.Router();
 
-router.post("/login", (req, res) => {
-    
+router.post("/login", async (req, res) => {
+    const { username, password } = req.body;
+
+    const user = db.prepare(`
+        SELECT *
+        FROM users
+        WHERE username = ?
+    `).get(username.toLowerCase());
+
+    if(!user) {
+        return res.status(401).json({
+            message: "Invalid credentials."
+        });
+    }
+
+    const passwordCorrect = await bcrypt.compare(
+        password,
+        user.passwordHash
+    );
+
+    if (!passwordCorrect) {
+        return res.status(401).json({
+            message: "Invalid credentials."
+        });
+    }
+
+    req.session.userId = user.id;
+
+    res.json({
+        message: "Logged in successfully."
+    });
 });
 
 router.post("/register", async (req, res) => {
@@ -29,7 +58,7 @@ router.post("/register", async (req, res) => {
             VALUES 
             (?, ?)`)
         .run(
-            username, 
+            username.toLowerCase(), 
             passwordHash
         );
         
@@ -49,7 +78,22 @@ router.post("/register", async (req, res) => {
     }
 });
 
+
 router.post("/logout", (req, res) => {
+
+    req.session.destroy((err) => {
+
+        if (err) {
+            return res.status(500).json({
+                message: "Could not log out."
+            });
+        }
+
+        res.json({
+            message: "Logged out successfully."
+        });
+
+    });
 
 });
 
